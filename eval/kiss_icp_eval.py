@@ -31,12 +31,29 @@ from kiss_icp.pipeline import OdometryPipeline
 import matplotlib.pyplot as plt
 import numpy as np
 
+from kiss_icp.tools.progress_bar import get_progress_bar
+
 
 @dataclass
 class Metric:
     units: str
     values: List
 
+
+
+def get_sequence(kiss_pipeline: Callable, results: Dict, **kwargs):
+    # Create pipeline object
+    pipeline: OdometryPipeline = kiss_pipeline(kwargs.pop("sequence"))
+
+    # New entry to the results dictionary
+    results.setdefault("dataset_name", pipeline.dataset_name)
+
+    # Run pipeline
+    print(f"Now evaluating sequence {pipeline.dataset_sequence}")
+    #first_idx = pipeline.get_first_idx()
+    #last_idx = pipeline.get_last_idx()
+    for idx in get_progress_bar(pipeline._first, pipeline._last):
+        yield pipeline._next(idx) , pipeline.gt_poses[idx]
 
 def run_sequence(kiss_pipeline: Callable, results: Dict, **kwargs):
     # Create pipeline object

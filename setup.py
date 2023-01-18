@@ -57,15 +57,48 @@ def skbuild_isolated_context():
     yield
 
 
+# with skbuild_isolated_context():
+#     setup(
+#         packages=["kiss_icp"] if sys.argv[1] == "develop" else find_packages("src/python"),
+#         package_dir={"": "src/python"},
+#         cmake_install_dir="src/python/kiss_icp/pybind/",
+#         cmake_args=["-DBUILD_PYTHON_BINDINGS:BOOL=ON"],
+#         entry_points={"console_scripts": ["kiss_icp_pipeline=kiss_icp.tools.cmd:run"]},
+#         include_package_data=False,
+#         package_data={"kiss_icp": ["config/default.yaml"]},
+#         install_requires=[
+#             "PyYAML",
+#             "easydict",
+#             "natsort",
+#             "numpy",
+#             "plyfile",
+#             "pyquaternion",
+#             "rich",
+#             "tqdm",
+#             "typer[all]>=0.6.0",
+#         ],
+#         extras_require={
+#             "visualizer": [
+#                 "open3d>=0.13",
+#             ],
+#             "all": [
+#                 "open3d>=0.13",
+#                 "pyntcloud",
+#                 "trimesh",
+#             ],
+#         },
+#     )
+
+
 with skbuild_isolated_context():
     setup(
-        packages=["kiss_icp"] if sys.argv[1] == "develop" else find_packages("src/python"),
+        packages=["slam_dataset_sdk"] if sys.argv[1] == "develop" else find_packages("src/python"),
         package_dir={"": "src/python"},
-        cmake_install_dir="src/python/kiss_icp/pybind/",
+        cmake_install_dir="src/python/slam_dataset_sdk/pybind/",
         cmake_args=["-DBUILD_PYTHON_BINDINGS:BOOL=ON"],
-        entry_points={"console_scripts": ["kiss_icp_pipeline=kiss_icp.tools.cmd:run"]},
+        entry_points={"console_scripts": ["slam_dataset_sdk=slam_dataset_sdk.tools.cmd:run"]},
         include_package_data=False,
-        package_data={"kiss_icp": ["config/default.yaml"]},
+        package_data={"slam_dataset_sdk": ["config/default.yaml"]},
         install_requires=[
             "PyYAML",
             "easydict",

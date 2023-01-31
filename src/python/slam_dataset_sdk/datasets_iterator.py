@@ -74,6 +74,9 @@ def dataset_itr(root_path, dataset_name, sequence):
         yield data
 
 
+def get_supported_datasets():
+    return dataset_name_to_subdir_map.keys()
+
 # data_root = "/run/user/1000/gvfs/smb-share:server=10.84.164.159,share=datasets" #os.environ.get("DATASETS")
 # paris_luco_root = os.path.join(data_root, "ParisLuco/00")
 # cfg_file = os.path.join(os.path.dirname(slam_dataset_sdk.__file__), "config/default.yaml")

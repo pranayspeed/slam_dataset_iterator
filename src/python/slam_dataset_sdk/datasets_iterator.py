@@ -36,12 +36,15 @@ def get_sequence(kiss_pipeline: Callable, results: Dict, **kwargs):
 
 
 dataset_name_to_subdir_map = {
+    "oxford": "velodyne_left",
+    "mydataset":"",
     "paris_luco": "ParisLuco",
     "kitti": "kitti-odometry/dataset",
     "mulran": "MulRan",
     "newer_college": "",
     "rosbag": "",
     "rosbag2": "",
+    
 }
 def get_dataset_subdir(dataset_name, sequence):
     sub_dir = dataset_name_to_subdir_map[dataset_name]

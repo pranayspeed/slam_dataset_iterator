@@ -53,7 +53,7 @@ def get_dataset_subdir(dataset_name, sequence):
     return sub_dir
 
 
-def dataset_itr(root_path, dataset_name, sequence):    
+def dataset_itr(root_path, dataset_name, sequence, topic="/ouster/points"):    
     dataset_root = os.path.join(root_path, get_dataset_subdir(dataset_name, sequence))
     cfg_file = os.path.join(os.path.dirname(slam_dataset_sdk.__file__), "config/default.yaml")
     def dataset_sequence_pipeline(sequence: int):
@@ -63,17 +63,29 @@ def dataset_itr(root_path, dataset_name, sequence):
                 data_dir=dataset_root,
                 config=cfg_file,
                 sequence=sequence,
+                topic=topic,
             ),
             config=cfg_file,
         )
 
     results = {}
     for raw_frame_timestamp, gt_pose in get_sequence(dataset_sequence_pipeline, sequence=sequence, results=results):
-        data = {
-            "raw_frame": raw_frame_timestamp[0],
-            "timestamp": raw_frame_timestamp[1],
-            "gt_pose": gt_pose
-        }
+
+        #print(raw_frame_timestamp[0].shape, len(raw_frame_timestamp[1]), gt_pose.shape)
+        if len(raw_frame_timestamp[1])==2:
+            data = {
+                "raw_frame": raw_frame_timestamp[0],
+                "sem_label": raw_frame_timestamp[1][0],
+                "inst_label": raw_frame_timestamp[1][1],
+                #"label": raw_frame_timestamp[1][2],
+                "gt_pose": gt_pose
+            }            
+        else:
+            data = {
+                "raw_frame": raw_frame_timestamp[0],
+                "timestamp": raw_frame_timestamp[1],
+                "gt_pose": gt_pose
+            }
         yield data
 
 

@@ -35,10 +35,17 @@ class KITTIOdometryDataset:
         self.scan_files = sorted(glob.glob(self.velodyne_dir + "*.bin"))
         self.calibration = self.read_calib_file(os.path.join(self.kitti_sequence_dir, "calib.txt"))
 
+        self.label_dir = os.path.join(self.kitti_sequence_dir, "labels/")
+        self.label_files = sorted(glob.glob(self.label_dir + "*.label"))
+
+        print(f"Found {len(self.label_files)} scans in {self.kitti_sequence_dir}")
+
         # Load GT Poses (if available)
         if sequence < 11:
             self.poses_fn = os.path.join(data_dir, f"poses/{self.sequence_id}.txt")
             self.gt_poses = self.load_poses(self.poses_fn)
+
+
 
         # Add correction for KITTI datasets, can be easilty removed if unwanted
         from slam_dataset_sdk.pybind import kiss_icp_pybind
@@ -47,14 +54,30 @@ class KITTIOdometryDataset:
             kiss_icp_pybind._correct_kitti_scan(kiss_icp_pybind._Vector3dVector(frame))
         )
 
+        
+        
+
+
+    def open_label(self, label_file):
+        # if all goes well, open label
+        label = np.fromfile(label_file, dtype=np.uint32)
+        label = label.reshape((-1))
+        sem_label = label & 0xFFFF  # semantic label in lower half
+        inst_label = label >> 16    # instance id in upper half
+
+        return sem_label, inst_label#, label
+
     def __getitem__(self, idx):
-        return self.scans(idx)
+        return self.scans(idx), self.labels(idx)
 
     def __len__(self):
         return len(self.scan_files)
 
     def scans(self, idx):
         return self.read_point_cloud(self.scan_files[idx])
+    
+    def labels(self, idx):
+        return self.open_label(self.label_files[idx])
 
     def apply_calibration(self, poses: np.ndarray) -> np.ndarray:
         """Converts from Velodyne to Camera Frame"""
@@ -84,6 +107,8 @@ class KITTIOdometryDataset:
         )
         poses = poses.reshape((n, 4, 4))  # [N, 4, 4]
         return _lidar_pose_gt(poses)
+
+    
 
     @staticmethod
     def read_calib_file(file_path: str) -> dict:

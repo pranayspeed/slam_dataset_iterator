@@ -28,9 +28,8 @@ import sys
 import numpy as np
 import yaml
 
-
 class RosbagDataset:
-    def __init__(self, data_dir: Path, topic: str, *_, **__):
+    def __init__(self, data_dir: Path, *_, **kwargs):
         try:
             import rosbag
         except ModuleNotFoundError:
@@ -41,8 +40,14 @@ class RosbagDataset:
         self.sequence_id = os.path.basename(data_dir).split(".")[0]
 
         # bagfile
+        if data_dir[-1]=='/':
+            data_dir = data_dir[:-1]
         self.bagfile = data_dir
+        print(f"Opening {self.bagfile}")
         self.bag = rosbag.Bag(data_dir, mode="r")
+        #topic = "sensor_msgs/PointCloud2"
+        #topic = "/ouster/points"
+        topic = kwargs.get("topic", "")
         self.topic = topic
         self.check_for_topics()
 
@@ -50,6 +55,9 @@ class RosbagDataset:
         self.n_scans = self.bag.get_message_count(topic_filters=topic)
         self.msgs = self.bag.read_messages(topics=[topic])
 
+        self.gt_poses = np.zeros((self.n_scans, 4, 4))
+        print(self.n_scans, "scans in the bagfile")
+        
         # Visualization Options
         self.use_global_visualizer = True
 
@@ -65,6 +73,7 @@ class RosbagDataset:
     def read_point_cloud(self, bagfile: Path, topic: str, idx: int):
         # TODO: implemnt [idx], expose field_names
         _, msg, _ = next(self.msgs)
+        print("read msg", msg.header.stamp)
         points = np.array(list(self.pc2.read_points(msg, field_names=["x", "y", "z"])))
 
         t_field = None
@@ -75,11 +84,13 @@ class RosbagDataset:
         if t_field:
             timestamps = np.array(list(self.pc2.read_points(msg, field_names=t_field)))
             timestamps = timestamps / np.max(timestamps)
-        return points.astype(np.float64), timestamps
+        return points.astype(np.float64)#, timestamps
 
     def check_for_topics(self):
+        print("Checking for topics...")
         if self.topic:
             return
+        print("No topic provided")
         print("Please provide one of the following topics with the --topic flag")
         info_dict = yaml.safe_load(self.bag._get_yaml_info())
         info_dict.keys()
